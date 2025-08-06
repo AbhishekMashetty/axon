@@ -1,0 +1,1 @@
+kubectl get events -n <your-namespace> --sort-by=.metadata.creationTimestamp --field-selector involvedObject.kind=Job -o json | jq -r '.items[] | select(.involvedObject.name | startswith("data-ingestion-") and (now - (.lastTimestamp | fromdate)) < 3600) | "\(.lastTimestamp) \(.involvedObject.name) \(.message)"'
