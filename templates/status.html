@@ -1,0 +1,407 @@
+{% extends "base.html" %}
+
+{% block title %}Deployment Status - Batch Deployment System{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1 class="h3">
+                <i data-feather="activity" class="me-2"></i>
+                Deployment Status
+            </h1>
+            <div>
+                <button type="button" class="btn btn-outline-secondary me-2" onclick="location.reload()">
+                    <i data-feather="refresh-cw" class="me-2"></i>
+                    Refresh
+                </button>
+                <a href="{{ url_for('index') }}" class="btn btn-outline-secondary">
+                    <i data-feather="arrow-left" class="me-2"></i>
+                    Back to Dashboard
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Batch Overview -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">
+                        <i data-feather="package" class="me-2"></i>
+                        Batch Overview
+                    </h5>
+                    <div>
+                        {% set status_class = {
+                            'pending': 'secondary',
+                            'processing': 'warning',
+                            'success': 'success',
+                            'failed': 'danger',
+                            'rollback': 'info'
+                        } %}
+                        <span class="badge bg-{{ status_class.get(batch.status.value, 'secondary') }} fs-6">
+                            {% set status_icons = {
+                                'pending': 'clock',
+                                'processing': 'loader',
+                                'success': 'check-circle',
+                                'failed': 'x-circle',
+                                'rollback': 'rotate-ccw'
+                            } %}
+                            <i data-feather="{{ status_icons.get(batch.status.value, 'circle') }}" class="me-1"></i>
+                            {{ batch.status.value.title() }}
+                        </span>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-3">
+                        <div class="text-center">
+                            <h4 class="text-primary mb-1">{{ batch.batch_id[:8] }}...</h4>
+                            <p class="text-muted mb-0">Batch ID</p>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="text-center">
+                            <h4 class="mb-1">{{ batch.total_deployments }}</h4>
+                            <p class="text-muted mb-0">Total Deployments</p>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="text-center">
+                            <h4 class="text-success mb-1">{{ batch.successful_deployments }}</h4>
+                            <p class="text-muted mb-0">Successful</p>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="text-center">
+                            <h4 class="text-danger mb-1">{{ batch.failed_deployments }}</h4>
+                            <p class="text-muted mb-0">Failed</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="row mt-3">
+                    <div class="col-md-6">
+                        <small class="text-muted">
+                            <i data-feather="file" class="me-1"></i>
+                            YAML File: <strong>{{ batch.yaml_filename }}</strong>
+                        </small>
+                    </div>
+                    <div class="col-md-6">
+                        <small class="text-muted">
+                            <i data-feather="clock" class="me-1"></i>
+                            Started: <strong>{{ batch.created_at.strftime('%Y-%m-%d %H:%M:%S') }}</strong>
+                        </small>
+                    </div>
+                </div>
+                
+                {% if batch.total_deployments > 0 %}
+                <div class="progress-container mt-3">
+                    {% set success_rate = (batch.successful_deployments / batch.total_deployments * 100) | round(1) %}
+                    {% set failed_rate = (batch.failed_deployments / batch.total_deployments * 100) | round(1) %}
+                    {% set processing_rate = 100 - success_rate - failed_rate %}
+                    
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span class="small text-muted">Progress</span>
+                        <span class="small">
+                            <span class="text-success">{{ success_rate }}%</span> successful,
+                            <span class="text-danger">{{ failed_rate }}%</span> failed
+                        </span>
+                    </div>
+                    
+                    <div class="progress" style="height: 8px;">
+                        <div class="progress-bar bg-success" role="progressbar" 
+                             style="width: {{ success_rate }}%"></div>
+                        <div class="progress-bar bg-danger" role="progressbar" 
+                             style="width: {{ failed_rate }}%"></div>
+                        <div class="progress-bar bg-warning" role="progressbar" 
+                             style="width: {{ processing_rate }}%"></div>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Action Buttons -->
+{% if batch.status.value in ['failed', 'success'] and batch.successful_deployments > 0 %}
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card border-warning">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="mb-1">
+                            <i data-feather="alert-triangle" class="me-2 text-warning"></i>
+                            Rollback Available
+                        </h6>
+                        <p class="text-muted mb-0">
+                            This deployment batch has {{ batch.successful_deployments }} successful deployment(s) that can be rolled back.
+                        </p>
+                    </div>
+                    <form method="POST" action="{{ url_for('rollback_deployment', batch_id=batch.batch_id) }}" 
+                          onsubmit="return confirm('Are you sure you want to rollback this deployment batch?')">
+                        <button type="submit" class="btn btn-warning">
+                            <i data-feather="rotate-ccw" class="me-2"></i>
+                            Rollback Batch
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Deployment Details -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i data-feather="list" class="me-2"></i>
+                    Deployment Details
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if deployments %}
+                    <div class="deployment-timeline">
+                        {% for deployment in deployments %}
+                        <div class="timeline-item {{ deployment.status.value }}">
+                            <div class="card mb-3">
+                                <div class="card-body">
+                                    <div class="row align-items-center">
+                                        <div class="col-md-2">
+                                            <span class="badge bg-{{ {
+                                                'clearing': 'primary',
+                                                'risk': 'success', 
+                                                'data': 'info',
+                                                'shared': 'warning'
+                                            }.get(deployment.pillar.value, 'secondary') }}">
+                                                {{ deployment.pillar.value.title() }}
+                                            </span>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <h6 class="mb-1">{{ deployment.service_name }}</h6>
+                                            <small class="text-muted">
+                                                {{ deployment.k8s_object_type }}/{{ deployment.k8s_object_name }}
+                                            </small>
+                                        </div>
+                                        <div class="col-md-2">
+                                            <small class="text-muted">Version:</small><br>
+                                            <code>{{ deployment.docker_image_version }}</code>
+                                        </div>
+                                        <div class="col-md-2">
+                                            <small class="text-muted">Type:</small><br>
+                                            <span class="badge bg-secondary">{{ deployment.docker_artifact_type }}</span>
+                                        </div>
+                                        <div class="col-md-2">
+                                            {% set status_class = {
+                                                'pending': 'secondary',
+                                                'processing': 'warning',
+                                                'success': 'success',
+                                                'failed': 'danger',
+                                                'rollback': 'info'
+                                            } %}
+                                            <span class="badge bg-{{ status_class.get(deployment.status.value, 'secondary') }}">
+                                                {% set status_icons = {
+                                                    'pending': 'clock',
+                                                    'processing': 'loader',
+                                                    'success': 'check-circle',
+                                                    'failed': 'x-circle',
+                                                    'rollback': 'rotate-ccw'
+                                                } %}
+                                                <i data-feather="{{ status_icons.get(deployment.status.value, 'circle') }}" 
+                                                   class="me-1" style="width: 0.8rem; height: 0.8rem;"></i>
+                                                {{ deployment.status.value.title() }}
+                                            </span>
+                                        </div>
+                                        <div class="col-md-1">
+                                            <div class="dropdown">
+                                                <button class="btn btn-outline-secondary btn-sm dropdown-toggle" 
+                                                        type="button" data-bs-toggle="dropdown">
+                                                    <i data-feather="more-horizontal"></i>
+                                                </button>
+                                                <ul class="dropdown-menu">
+                                                    {% if deployment.harness_execution_id %}
+                                                    <li>
+                                                        <a class="dropdown-item" href="#" 
+                                                           onclick="viewExecutionDetails('{{ deployment.harness_execution_id }}')">
+                                                            <i data-feather="external-link" class="me-2"></i>
+                                                            View in Harness
+                                                        </a>
+                                                    </li>
+                                                    {% endif %}
+                                                    <li>
+                                                        <a class="dropdown-item" href="#" 
+                                                           onclick="viewLogs('{{ deployment.pillar.value }}', '{{ deployment.service_name }}')">
+                                                            <i data-feather="file-text" class="me-2"></i>
+                                                            View Logs
+                                                        </a>
+                                                    </li>
+                                                </ul>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    {% if deployment.error_message %}
+                                    <div class="row mt-2">
+                                        <div class="col-12">
+                                            <div class="alert alert-danger mb-0">
+                                                <small>
+                                                    <i data-feather="alert-circle" class="me-1"></i>
+                                                    <strong>Error:</strong> {{ deployment.error_message }}
+                                                </small>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    {% endif %}
+                                    
+                                    <div class="row mt-2">
+                                        <div class="col-md-4">
+                                            <small class="text-muted">Environment:</small>
+                                            <div>{{ deployment.environment_id }}</div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <small class="text-muted">Infrastructure:</small>
+                                            <div>{{ deployment.infrastructure_id }}</div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <small class="text-muted">Updated:</small>
+                                            <div>{{ deployment.updated_at.strftime('%H:%M:%S') if deployment.updated_at else 'N/A' }}</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="text-center py-5">
+                        <i data-feather="inbox" class="text-muted mb-3" style="width: 4rem; height: 4rem;"></i>
+                        <h5 class="text-muted">No deployments found</h5>
+                        <p class="text-muted">This batch doesn't contain any deployment records.</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Logs Modal -->
+<div class="modal fade" id="logsModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Deployment Logs</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div id="logsContent" class="log-output p-3">
+                    <div class="text-center">
+                        <i data-feather="loader" class="me-2"></i>
+                        Loading logs...
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Auto-refresh every 30 seconds
+let autoRefreshInterval = setInterval(function() {
+    {% if batch.status.value == 'processing' %}
+    location.reload();
+    {% endif %}
+}, 30000);
+
+// Real-time status updates via API
+async function updateDeploymentStatus() {
+    try {
+        const response = await fetch('/api/status/{{ batch.batch_id }}');
+        const data = await response.json();
+        
+        // Update batch status if changed
+        if (data.batch_status !== '{{ batch.status.value }}') {
+            location.reload();
+        }
+        
+        // Update individual deployment statuses
+        data.deployments.forEach(deployment => {
+            const element = document.querySelector(`[data-deployment-id="${deployment.id}"]`);
+            if (element) {
+                // Update status badge, etc.
+                // Implementation would update DOM elements
+            }
+        });
+    } catch (error) {
+        console.error('Error fetching status updates:', error);
+    }
+}
+
+// Periodically check for updates
+setInterval(updateDeploymentStatus, 15000);
+
+function viewExecutionDetails(executionId) {
+    // Open Harness execution in new tab
+    const harnessUrl = `https://app.harness.io/ng/account/YOUR_ACCOUNT/home/orgs/YOUR_ORG/projects/YOUR_PROJECT/pipelines/executions/${executionId}`;
+    window.open(harnessUrl, '_blank');
+}
+
+function viewLogs(pillar, serviceName) {
+    const modal = new bootstrap.Modal(document.getElementById('logsModal'));
+    const logsContent = document.getElementById('logsContent');
+    
+    // Show loading state
+    logsContent.innerHTML = `
+        <div class="text-center">
+            <i data-feather="loader" class="me-2"></i>
+            Loading logs for ${pillar}/${serviceName}...
+        </div>
+    `;
+    
+    modal.show();
+    
+    // Simulate log fetching (replace with actual API call)
+    setTimeout(() => {
+        logsContent.innerHTML = `
+            <div class="text-muted mb-2">Last 100 lines from ${pillar}/${serviceName}:</div>
+            <pre class="text-light">
+2024-01-15 10:30:15 INFO  Starting deployment process...
+2024-01-15 10:30:16 INFO  Pulling image ${serviceName}:latest
+2024-01-15 10:30:18 INFO  Image pulled successfully
+2024-01-15 10:30:19 INFO  Creating Kubernetes resources...
+2024-01-15 10:30:20 INFO  Deployment ${serviceName} created
+2024-01-15 10:30:25 INFO  Waiting for deployment to be ready...
+2024-01-15 10:30:35 INFO  Deployment is ready
+2024-01-15 10:30:36 INFO  Health check passed
+2024-01-15 10:30:37 INFO  Deployment completed successfully
+            </pre>
+        `;
+        
+        feather.replace();
+    }, 1500);
+}
+
+// Initialize feather icons
+document.addEventListener('DOMContentLoaded', function() {
+    feather.replace();
+});
+
+// Clean up interval when page is unloaded
+window.addEventListener('beforeunload', function() {
+    clearInterval(autoRefreshInterval);
+});
+</script>
+{% endblock %}

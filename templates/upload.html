@@ -1,0 +1,310 @@
+{% extends "base.html" %}
+
+{% block title %}Upload YAML - Batch Deployment System{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1 class="h3">
+                <i data-feather="upload" class="me-2"></i>
+                Deploy Applications
+            </h1>
+            <a href="{{ url_for('index') }}" class="btn btn-outline-secondary">
+                <i data-feather="arrow-left" class="me-2"></i>
+                Back to Dashboard
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Upload Form -->
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i data-feather="file-plus" class="me-2"></i>
+                    Upload Deployment Configuration
+                </h5>
+            </div>
+            <div class="card-body">
+                <form id="uploadForm" method="POST" enctype="multipart/form-data" action="{{ url_for('upload_yaml') }}">
+                    <!-- File Upload -->
+                    <div class="mb-4">
+                        <label for="yaml_file" class="form-label">
+                            <i data-feather="file" class="me-2"></i>
+                            YAML Configuration File *
+                        </label>
+                        <input type="file" class="form-control" id="yaml_file" name="yaml_file" 
+                               accept=".yaml,.yml" required>
+                        <div class="form-text">
+                            Select a YAML file containing your deployment configuration. Maximum file size: 16MB.
+                        </div>
+                        <div class="invalid-feedback" id="fileError"></div>
+                    </div>
+
+                    <!-- Processing Mode -->
+                    <div class="mb-4">
+                        <label class="form-label">
+                            <i data-feather="settings" class="me-2"></i>
+                            Processing Mode *
+                        </label>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="processing_mode" 
+                                           id="parallel" value="parallel" checked>
+                                    <label class="form-check-label" for="parallel">
+                                        <strong>Parallel Processing</strong>
+                                        <div class="text-muted small">
+                                            Deploy all services simultaneously for faster execution
+                                        </div>
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="processing_mode" 
+                                           id="sequential" value="sequential">
+                                    <label class="form-check-label" for="sequential">
+                                        <strong>Sequential Processing</strong>
+                                        <div class="text-muted small">
+                                            Deploy services one by one for better control
+                                        </div>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Validation Results -->
+                    <div id="validationResults" class="mb-4" style="display: none;">
+                        <div class="alert alert-info">
+                            <h6 class="alert-heading">
+                                <i data-feather="check-circle" class="me-2"></i>
+                                Validation Results
+                            </h6>
+                            <div id="validationContent"></div>
+                        </div>
+                    </div>
+
+                    <!-- Submit Buttons -->
+                    <div class="d-flex gap-2">
+                        <button type="button" class="btn btn-outline-secondary" id="validateBtn">
+                            <i data-feather="check" class="me-2"></i>
+                            Validate YAML
+                        </button>
+                        <button type="submit" class="btn btn-primary" id="deployBtn" disabled>
+                            <i data-feather="play" class="me-2"></i>
+                            <span id="deployBtnText">Deploy Applications</span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Help Sidebar -->
+    <div class="col-lg-4">
+        <div class="card">
+            <div class="card-header">
+                <h6 class="mb-0">
+                    <i data-feather="info" class="me-2"></i>
+                    Deployment Guide
+                </h6>
+            </div>
+            <div class="card-body">
+                <h6>Supported Pillars</h6>
+                <ul class="list-unstyled mb-3">
+                    <li><span class="badge bg-primary me-2">Clearing</span> Trade processing services</li>
+                    <li><span class="badge bg-success me-2">Risk</span> Risk management services</li>
+                    <li><span class="badge bg-info me-2">Data</span> Data processing services</li>
+                    <li><span class="badge bg-warning me-2">Shared</span> Common services</li>
+                </ul>
+
+                <h6>Processing Modes</h6>
+                <div class="mb-3">
+                    <strong>Parallel:</strong>
+                    <ul class="small text-muted">
+                        <li>Faster deployment</li>
+                        <li>Higher resource usage</li>
+                        <li>Less granular control</li>
+                    </ul>
+                    
+                    <strong>Sequential:</strong>
+                    <ul class="small text-muted">
+                        <li>Controlled deployment</li>
+                        <li>Lower resource usage</li>
+                        <li>Easier troubleshooting</li>
+                    </ul>
+                </div>
+
+                <h6>Tips</h6>
+                <ul class="small text-muted">
+                    <li>Always validate your YAML before deployment</li>
+                    <li>Use meaningful service names</li>
+                    <li>Check Kubernetes connectivity</li>
+                    <li>Monitor deployment progress</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Example YAML -->
+        <div class="card mt-3">
+            <div class="card-header">
+                <h6 class="mb-0">
+                    <i data-feather="code" class="me-2"></i>
+                    Example YAML
+                </h6>
+            </div>
+            <div class="card-body">
+                <pre class="yaml-preview p-3"><code>version: v1.0
+metadata:
+  name: "Sample Deployment"
+  description: "Deploy core services"
+
+defaults:
+  environment_id: "prod"
+  infrastructure_id: "k8s-cluster-1"
+
+deployments:
+  - pillar: clearing
+    service_name: trade-processor
+    docker_artifact_type: docker
+    docker_image_version: "v1.2.3"
+    environment_id: "prod"
+    infrastructure_id: "clearing-ns"
+    
+  - pillar: risk
+    service_name: risk-engine
+    docker_artifact_type: helm
+    docker_image_version: "v2.1.0"
+    environment_id: "prod"
+    infrastructure_id: "risk-ns"</code></pre>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const fileInput = document.getElementById('yaml_file');
+    const validateBtn = document.getElementById('validateBtn');
+    const deployBtn = document.getElementById('deployBtn');
+    const deployBtnText = document.getElementById('deployBtnText');
+    const validationResults = document.getElementById('validationResults');
+    const validationContent = document.getElementById('validationContent');
+    const uploadForm = document.getElementById('uploadForm');
+
+    let isValidated = false;
+
+    // File input change handler
+    fileInput.addEventListener('change', function() {
+        isValidated = false;
+        deployBtn.disabled = true;
+        validationResults.style.display = 'none';
+        
+        if (fileInput.files.length > 0) {
+            validateBtn.disabled = false;
+        } else {
+            validateBtn.disabled = true;
+        }
+    });
+
+    // Validate button click handler
+    validateBtn.addEventListener('click', function() {
+        if (!fileInput.files.length) {
+            alert('Please select a YAML file first.');
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append('yaml_file', fileInput.files[0]);
+
+        validateBtn.disabled = true;
+        validateBtn.innerHTML = '<i data-feather="loader" class="me-2"></i>Validating...';
+
+        fetch('/validate-yaml', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.valid) {
+                validationContent.innerHTML = `
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span><strong>✓ YAML is valid</strong></span>
+                        <span class="badge bg-success">Valid</span>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <small class="text-muted">Deployments: <strong>${data.deployment_count}</strong></small>
+                        </div>
+                        <div class="col-md-6">
+                            <small class="text-muted">Pillars: <strong>${data.pillars.join(', ')}</strong></small>
+                        </div>
+                    </div>
+                `;
+                validationResults.className = 'mb-4 alert alert-success';
+                isValidated = true;
+                deployBtn.disabled = false;
+            } else {
+                validationContent.innerHTML = `
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span><strong>✗ YAML validation failed</strong></span>
+                        <span class="badge bg-danger">Invalid</span>
+                    </div>
+                    <div class="text-danger">
+                        <strong>Error:</strong> ${data.error}
+                    </div>
+                `;
+                validationResults.className = 'mb-4 alert alert-danger';
+                isValidated = false;
+                deployBtn.disabled = true;
+            }
+            
+            validationResults.style.display = 'block';
+        })
+        .catch(error => {
+            console.error('Validation error:', error);
+            validationContent.innerHTML = `
+                <div class="text-danger">
+                    <strong>Validation Error:</strong> Unable to validate YAML file. Please try again.
+                </div>
+            `;
+            validationResults.className = 'mb-4 alert alert-danger';
+            validationResults.style.display = 'block';
+            isValidated = false;
+            deployBtn.disabled = true;
+        })
+        .finally(() => {
+            validateBtn.disabled = false;
+            validateBtn.innerHTML = '<i data-feather="check" class="me-2"></i>Validate YAML';
+            feather.replace();
+        });
+    });
+
+    // Form submit handler
+    uploadForm.addEventListener('submit', function(e) {
+        if (!isValidated) {
+            e.preventDefault();
+            alert('Please validate your YAML file before deployment.');
+            return;
+        }
+
+        deployBtn.disabled = true;
+        deployBtnText.textContent = 'Deploying...';
+        
+        // Show loading state
+        deployBtn.innerHTML = '<i data-feather="loader" class="me-2"></i><span id="deployBtnText">Deploying...</span>';
+        feather.replace();
+    });
+
+    // Initialize feather icons
+    feather.replace();
+});
+</script>
+{% endblock %}

@@ -1,0 +1,150 @@
+{
+  "clearing": {
+    "trade-processor": {
+      "k8s_object_type": "deployment",
+      "k8s_object_name": "trade-processor",
+      "namespace": "clearing"
+    },
+    "settlement-engine": {
+      "k8s_object_type": "deployment",
+      "k8s_object_name": "settlement-engine",
+      "namespace": "clearing"
+    },
+    "clearing-gateway": {
+      "k8s_object_type": "deployment",
+      "k8s_object_name": "clearing-gateway",
+      "namespace": "clearing"
+    },
+    "netting-service": {
+      "k8s_object_type": "deployment",
+      "k8s_object_name": "netting-service",
+      "namespace": "clearing"
+    },
+    "margin-calculator": {
+      "k8s_object_type": "deployment",
+      "k8s_object_name": "margin-calculator",
+      "namespace": "clearing"
+    },
+    "collateral-manager": {
+      "k8s_object_type": "deployment",
+      "k8s_object_name": "collateral-manager",
+      "namespace": "clearing"
+    },
+    "clearing-reports": {
+      "k8s_object_type": "cronjob",
+      "k8s_object_name": "clearing-reports-job",
+      "namespace": "clearing"
+    }
+  },
+  "risk": {
+    "risk-engine": {
+      "k8s_object_type": "deployment",
+      "k8s_object_name": "risk-engine",
+      "namespace": "risk"
+    },
+    "var-calculator": {
+      "k8s_object_type": "deployment",
+      "k8s_object_name": "var-calculator",
+      "namespace": "risk"
+    },
+    "stress-testing": {
+      "k8s_object_type": "job",
+      "k8s_object_name": "stress-testing-job",
+      "namespace": "risk"
+    },
+    "credit-monitor": {
+      "k8s_object_type": "deployment",  
+      "k8s_object_name": "credit-monitor",
+      "namespace": "risk"
+    },
+    "market-data-feed": {
+      "k8s_object_type": "daemonset",
+      "k8s_object_name": "market-data-feed",
+      "namespace": "risk"
+    },
+    "risk-dashboard": {
+      "k8s_object_type": "deployment",
+      "k8s_object_name": "risk-dashboard",
+      "namespace": "risk"
+    },
+    "portfolio-analyzer": {
+      "k8s_object_type": "deployment",
+      "k8s_object_name": "portfolio-analyzer",
+      "namespace": "risk"
+    }
+  },
+  "data": {
+    "data-ingester": {
+      "k8s_object_type": "deployment",
+      "k8s_object_name": "data-ingester",
+      "namespace": "data"
+    },
+    "etl-processor": {
+      "k8s_object_type": "cronjob",
+      "k8s_object_name": "etl-processor-job",
+      "namespace": "data"
+    },
+    "data-warehouse": {
+      "k8s_object_type": "statefulset",
+      "k8s_object_name": "data-warehouse",
+      "namespace": "data"
+    },
+    "analytics-engine": {
+      "k8s_object_type": "deployment",
+      "k8s_object_name": "analytics-engine",
+      "namespace": "data"
+    },
+    "data-quality": {
+      "k8s_object_type": "deployment",
+      "k8s_object_name": "data-quality",
+      "namespace": "data"
+    },
+    "data-catalog": {
+      "k8s_object_type": "deployment",
+      "k8s_object_name": "data-catalog",
+      "namespace": "data"
+    },
+    "stream-processor": {
+      "k8s_object_type": "deployment",
+      "k8s_object_name": "stream-processor",
+      "namespace": "data"
+    }
+  },
+  "shared": {
+    "auth-service": {
+      "k8s_object_type": "deployment",
+      "k8s_object_name": "auth-service",
+      "namespace": "shared"
+    },
+    "notification-service": {
+      "k8s_object_type": "deployment",
+      "k8s_object_name": "notification-service",
+      "namespace": "shared"
+    },
+    "audit-logger": {
+      "k8s_object_type": "daemonset",
+      "k8s_object_name": "audit-logger",
+      "namespace": "shared"
+    },
+    "config-manager": {
+      "k8s_object_type": "deployment",
+      "k8s_object_name": "config-manager",
+      "namespace": "shared"
+    },
+    "monitoring-agent": {
+      "k8s_object_type": "daemonset",
+      "k8s_object_name": "monitoring-agent",
+      "namespace": "shared"
+    },
+    "backup-service": {
+      "k8s_object_type": "cronjob",
+      "k8s_object_name": "backup-service-job",
+      "namespace": "shared"
+    },
+    "secret-manager": {
+      "k8s_object_type": "deployment",
+      "k8s_object_name": "secret-manager",
+      "namespace": "shared"
+    }
+  }
+}

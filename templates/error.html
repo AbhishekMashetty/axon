@@ -1,0 +1,217 @@
+{% extends "base.html" %}
+
+{% block title %}Error {{ error_code }} - Batch Deployment System{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8 col-lg-6">
+        <div class="card">
+            <div class="card-body text-center py-5">
+                <!-- Error Icon -->
+                <div class="mb-4">
+                    {% if error_code == 404 %}
+                        <i data-feather="search" class="text-muted" style="width: 5rem; height: 5rem;"></i>
+                    {% elif error_code == 500 %}
+                        <i data-feather="alert-circle" class="text-danger" style="width: 5rem; height: 5rem;"></i>
+                    {% elif error_code == 403 %}
+                        <i data-feather="lock" class="text-warning" style="width: 5rem; height: 5rem;"></i>
+                    {% else %}
+                        <i data-feather="x-circle" class="text-muted" style="width: 5rem; height: 5rem;"></i>
+                    {% endif %}
+                </div>
+                
+                <!-- Error Code -->
+                <h1 class="display-1 fw-bold text-primary mb-2">{{ error_code }}</h1>
+                
+                <!-- Error Title -->
+                <h3 class="mb-3">
+                    {% if error_code == 404 %}
+                        Page Not Found
+                    {% elif error_code == 500 %}
+                        Internal Server Error
+                    {% elif error_code == 403 %}
+                        Access Forbidden
+                    {% elif error_code == 401 %}
+                        Unauthorized Access
+                    {% elif error_code == 400 %}
+                        Bad Request
+                    {% else %}
+                        Error Occurred
+                    {% endif %}
+                </h3>
+                
+                <!-- Error Message -->
+                <p class="text-muted mb-4">
+                    {% if error_message %}
+                        {{ error_message }}
+                    {% else %}
+                        {% if error_code == 404 %}
+                            The page you're looking for doesn't exist or has been moved.
+                        {% elif error_code == 500 %}
+                            Something went wrong on our end. We're working to fix this issue.
+                        {% elif error_code == 403 %}
+                            You don't have permission to access this resource.
+                        {% elif error_code == 401 %}
+                            You need to authenticate to access this resource.
+                        {% elif error_code == 400 %}
+                            The request was malformed or contains invalid data.
+                        {% else %}
+                            An unexpected error occurred. Please try again later.
+                        {% endif %}
+                    {% endif %}
+                </p>
+                
+                <!-- Action Buttons -->
+                <div class="d-flex gap-2 justify-content-center">
+                    <a href="{{ url_for('index') }}" class="btn btn-primary">
+                        <i data-feather="home" class="me-2"></i>
+                        Go to Dashboard
+                    </a>
+                    
+                    {% if error_code == 404 %}
+                    <button type="button" class="btn btn-outline-secondary" onclick="history.back()">
+                        <i data-feather="arrow-left" class="me-2"></i>
+                        Go Back
+                    </button>
+                    {% endif %}
+                    
+                    {% if error_code == 500 %}
+                    <button type="button" class="btn btn-outline-secondary" onclick="location.reload()">
+                        <i data-feather="refresh-cw" class="me-2"></i>
+                        Try Again
+                    </button>
+                    {% endif %}
+                </div>
+                
+                <!-- Additional Help for 404 -->
+                {% if error_code == 404 %}
+                <div class="mt-4 pt-4 border-top">
+                    <h6 class="text-muted">Looking for something specific?</h6>
+                    <div class="d-flex gap-2 justify-content-center flex-wrap">
+                        <a href="{{ url_for('upload_form') }}" class="btn btn-outline-primary btn-sm">
+                            <i data-feather="upload" class="me-1"></i>
+                            Upload YAML
+                        </a>
+                        <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-toggle="modal" data-bs-target="#examplesModal">
+                            <i data-feather="code" class="me-1"></i>
+                            View Examples
+                        </button>
+                        <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-toggle="modal" data-bs-target="#yamlSchemaModal">
+                            <i data-feather="file-text" class="me-1"></i>
+                            YAML Schema
+                        </button>
+                    </div>
+                </div>
+                {% endif %}
+                
+                <!-- Additional Help for 500 -->
+                {% if error_code == 500 %}
+                <div class="mt-4 pt-4 border-top">
+                    <h6 class="text-muted">If the problem persists:</h6>
+                    <ul class="list-unstyled text-muted small">
+                        <li>• Check system status on the dashboard</li>
+                        <li>• Verify your YAML configuration</li>
+                        <li>• Contact system administrator</li>
+                        <li>• Try deploying smaller batches</li>
+                    </ul>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- System Status Card for 500 errors -->
+        {% if error_code == 500 %}
+        <div class="card mt-4">
+            <div class="card-header">
+                <h6 class="mb-0">
+                    <i data-feather="activity" class="me-2"></i>
+                    System Status
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col-6">
+                        <div class="border-end">
+                            <i data-feather="database" class="text-success mb-2"></i>
+                            <div class="small text-muted">Database</div>
+                            <div class="fw-bold text-success">Online</div>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <i data-feather="server" class="text-success mb-2"></i>
+                        <div class="small text-muted">Services</div>
+                        <div class="fw-bold text-success">Running</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Quick Actions for 404 -->
+{% if error_code == 404 %}
+<div class="row justify-content-center mt-4">
+    <div class="col-md-8 col-lg-6">
+        <div class="card">
+            <div class="card-header">
+                <h6 class="mb-0">
+                    <i data-feather="compass" class="me-2"></i>
+                    Quick Navigation
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="list-group list-group-flush">
+                    <a href="{{ url_for('index') }}" class="list-group-item list-group-item-action">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <i data-feather="home" class="me-2 text-primary"></i>
+                                <strong>Dashboard</strong>
+                                <div class="small text-muted">View recent deployments and system status</div>
+                            </div>
+                            <i data-feather="chevron-right" class="text-muted"></i>
+                        </div>
+                    </a>
+                    
+                    <a href="{{ url_for('upload_form') }}" class="list-group-item list-group-item-action">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <i data-feather="upload" class="me-2 text-success"></i>
+                                <strong>Deploy Applications</strong>
+                                <div class="small text-muted">Upload YAML configuration and start deployment</div>
+                            </div>
+                            <i data-feather="chevron-right" class="text-muted"></i>
+                        </div>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize feather icons
+    feather.replace();
+    
+    // Add some animation to the error icon
+    const errorIcon = document.querySelector('[data-feather]');
+    if (errorIcon && {{ error_code }} === 500) {
+        // Add pulse animation for server errors
+        errorIcon.style.animation = 'pulse 2s infinite';
+    }
+});
+
+// Auto-redirect for certain error types after a delay
+{% if error_code == 401 %}
+setTimeout(function() {
+    if (confirm('You will be redirected to the login page. Continue?')) {
+        window.location.href = '/login';
+    }
+}, 5000);
+{% endif %}
+</script>
+{% endblock %}

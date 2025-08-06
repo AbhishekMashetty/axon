@@ -1,0 +1,385 @@
+<!-- YAML Schema Modal -->
+<div class="modal fade" id="yamlSchemaModal" tabindex="-1" aria-labelledby="yamlSchemaModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="yamlSchemaModalLabel">
+                    <i data-feather="file-text" class="me-2"></i>
+                    YAML Schema Reference
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p class="text-muted">
+                    This reference describes the structure and requirements for deployment YAML files.
+                </p>
+                
+                <h6>Required Fields</h6>
+                <div class="table-responsive">
+                    <table class="table table-sm">
+                        <thead>
+                            <tr>
+                                <th>Field</th>
+                                <th>Type</th>
+                                <th>Description</th>
+                                <th>Example</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><code>version</code></td>
+                                <td>string</td>
+                                <td>Schema version</td>
+                                <td><code>v1.0</code></td>
+                            </tr>
+                            <tr>
+                                <td><code>deployments</code></td>
+                                <td>array</td>
+                                <td>List of deployments</td>
+                                <td><code>[...]</code></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                
+                <h6 class="mt-4">Deployment Object Fields</h6>
+                <div class="table-responsive">
+                    <table class="table table-sm">
+                        <thead>
+                            <tr>
+                                <th>Field</th>
+                                <th>Type</th>
+                                <th>Required</th>
+                                <th>Values</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><code>pillar</code></td>
+                                <td>string</td>
+                                <td>Yes</td>
+                                <td>clearing, risk, data, shared</td>
+                            </tr>
+                            <tr>
+                                <td><code>service_name</code></td>
+                                <td>string</td>
+                                <td>Yes</td>
+                                <td>Any valid service name</td>
+                            </tr>
+                            <tr>
+                                <td><code>docker_artifact_type</code></td>
+                                <td>string</td>
+                                <td>Yes</td>
+                                <td>docker, helm, kustomize</td>
+                            </tr>
+                            <tr>
+                                <td><code>docker_image_version</code></td>
+                                <td>string</td>
+                                <td>Yes</td>
+                                <td>v1.2.3, latest, commit-hash</td>
+                            </tr>
+                            <tr>
+                                <td><code>environment_id</code></td>
+                                <td>string</td>
+                                <td>Yes</td>
+                                <td>prod, staging, dev</td>
+                            </tr>
+                            <tr>
+                                <td><code>infrastructure_id</code></td>
+                                <td>string</td>
+                                <td>Yes</td>
+                                <td>k8s-cluster-1, namespace-name</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                
+                <h6 class="mt-4">Optional Fields</h6>
+                <ul>
+                    <li><strong>metadata:</strong> Additional deployment metadata</li>
+                    <li><strong>defaults:</strong> Default values for common fields</li>
+                    <li><strong>metadata.priority:</strong> Deployment priority (1-10)</li>
+                    <li><strong>metadata.timeout:</strong> Timeout in seconds</li>
+                    <li><strong>metadata.retry_count:</strong> Number of retries (0-5)</li>
+                </ul>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Examples Modal -->
+<div class="modal fade" id="examplesModal" tabindex="-1" aria-labelledby="examplesModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="examplesModalLabel">
+                    <i data-feather="code" class="me-2"></i>
+                    YAML Examples
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <ul class="nav nav-tabs" id="exampleTabs" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="basic-tab" data-bs-toggle="tab" data-bs-target="#basic" type="button" role="tab">
+                            Basic Example
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="advanced-tab" data-bs-toggle="tab" data-bs-target="#advanced" type="button" role="tab">
+                            Advanced Example
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="multi-pillar-tab" data-bs-toggle="tab" data-bs-target="#multi-pillar" type="button" role="tab">
+                            Multi-Pillar
+                        </button>
+                    </li>
+                </ul>
+                
+                <div class="tab-content mt-3" id="exampleTabContent">
+                    <div class="tab-pane fade show active" id="basic" role="tabpanel">
+                        <h6>Basic Deployment</h6>
+                        <p class="text-muted">Simple deployment with required fields only.</p>
+                        <pre class="yaml-preview p-3"><code>version: v1.0
+
+deployments:
+  - pillar: clearing
+    service_name: trade-processor
+    docker_artifact_type: docker
+    docker_image_version: v1.2.3
+    environment_id: prod
+    infrastructure_id: clearing-ns</code></pre>
+                    </div>
+                    
+                    <div class="tab-pane fade" id="advanced" role="tabpanel">
+                        <h6>Advanced Deployment</h6>
+                        <p class="text-muted">Deployment with metadata, defaults, and advanced options.</p>
+                        <pre class="yaml-preview p-3"><code>version: v1.0
+
+metadata:
+  name: "Q4 Release Deployment"
+  description: "Deploy core services for Q4 release"
+  author: "devops-team"
+
+defaults:
+  environment_id: prod
+  infrastructure_id: k8s-cluster-1
+  docker_artifact_type: docker
+
+deployments:
+  - pillar: clearing
+    service_name: trade-processor
+    docker_image_version: v2.1.0
+    metadata:
+      priority: 8
+      timeout: 1800
+      retry_count: 3
+      rollback_strategy: automatic
+      
+  - pillar: risk
+    service_name: risk-engine
+    docker_artifact_type: helm
+    docker_image_version: v1.5.2
+    infrastructure_id: risk-ns
+    metadata:
+      priority: 10
+      dependencies: ["trade-processor"]</code></pre>
+                    </div>
+                    
+                    <div class="tab-pane fade" id="multi-pillar" role="tabpanel">
+                        <h6>Multi-Pillar Deployment</h6>
+                        <p class="text-muted">Deploy services across multiple pillars with coordination.</p>
+                        <pre class="yaml-preview p-3"><code>version: v1.0
+
+metadata:
+  name: "Cross-Pillar Update"
+  description: "Update services across all pillars"
+
+defaults:
+  environment_id: prod
+  docker_artifact_type: docker
+
+deployments:
+  # Shared services first
+  - pillar: shared
+    service_name: auth-service
+    docker_image_version: v3.0.1
+    infrastructure_id: shared-ns
+    metadata:
+      priority: 10
+      
+  - pillar: shared
+    service_name: config-manager
+    docker_image_version: v2.1.0
+    infrastructure_id: shared-ns
+    metadata:
+      priority: 9
+      dependencies: ["auth-service"]
+      
+  # Core business services
+  - pillar: clearing
+    service_name: trade-processor
+    docker_image_version: v4.2.1
+    infrastructure_id: clearing-ns
+    metadata:
+      priority: 8
+      dependencies: ["auth-service", "config-manager"]
+      
+  - pillar: risk
+    service_name: risk-engine
+    docker_image_version: v3.1.5
+    infrastructure_id: risk-ns
+    metadata:
+      priority: 7
+      dependencies: ["trade-processor"]
+      
+  - pillar: data
+    service_name: analytics-engine
+    docker_image_version: v2.0.3
+    infrastructure_id: data-ns
+    metadata:
+      priority: 6
+      dependencies: ["trade-processor", "risk-engine"]</code></pre>
+                    </div>
+                </div>
+                
+                <div class="mt-4">
+                    <h6>Best Practices</h6>
+                    <ul class="text-muted">
+                        <li>Always specify explicit version tags instead of "latest"</li>
+                        <li>Use meaningful service names that match your Kubernetes deployments</li>
+                        <li>Set appropriate priorities for dependent services</li>
+                        <li>Include metadata for better tracking and debugging</li>
+                        <li>Test with small batches before large deployments</li>
+                        <li>Use defaults to reduce repetition in large configurations</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- About Modal -->
+<div class="modal fade" id="aboutModal" tabindex="-1" aria-labelledby="aboutModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="aboutModalLabel">
+                    <i data-feather="info" class="me-2"></i>
+                    About Batch Deployment System
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="text-center mb-4">
+                    <i data-feather="layers" class="text-primary" style="width: 4rem; height: 4rem;"></i>
+                    <h4 class="mt-2">Batch Deployment System</h4>
+                    <p class="text-muted">YAML-driven multi-pillar deployment automation</p>
+                </div>
+                
+                <h6>Features</h6>
+                <ul>
+                    <li>YAML-based deployment configuration</li>
+                    <li>Multi-pillar support (Clearing, Risk, Data, Shared)</li>
+                    <li>Harness webhook integration</li>
+                    <li>Kubernetes deployment validation</li>
+                    <li>Real-time deployment monitoring</li>
+                    <li>Parallel and sequential processing modes</li>
+                    <li>Automated rollback capabilities</li>
+                    <li>Comprehensive error handling and logging</li>
+                </ul>
+                
+                <h6>Architecture</h6>
+                <ul>
+                    <li><strong>Frontend:</strong> Bootstrap 5, Feather Icons</li>
+                    <li><strong>Backend:</strong> Python Flask with SQLAlchemy</li>
+                    <li><strong>Integration:</strong> Harness CI/CD, Kubernetes API</li>
+                    <li><strong>Validation:</strong> JSON Schema, PyYAML</li>
+                    <li><strong>Processing:</strong> Concurrent deployment execution</li>
+                </ul>
+                
+                <h6>Supported Pillars</h6>
+                <div class="row">
+                    <div class="col-6">
+                        <span class="badge bg-primary me-2">Clearing</span>
+                        <small class="text-muted">Trade processing</small>
+                    </div>
+                    <div class="col-6">
+                        <span class="badge bg-success me-2">Risk</span>
+                        <small class="text-muted">Risk management</small>
+                    </div>
+                    <div class="col-6 mt-2">
+                        <span class="badge bg-info me-2">Data</span>
+                        <small class="text-muted">Data processing</small>
+                    </div>
+                    <div class="col-6 mt-2">
+                        <span class="badge bg-warning me-2">Shared</span>
+                        <small class="text-muted">Common services</small>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Logs Modal (referenced in status.html) -->
+<div class="modal fade" id="logsModal" tabindex="-1" aria-labelledby="logsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="logsModalLabel">
+                    <i data-feather="file-text" class="me-2"></i>
+                    Deployment Logs
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div id="logsContent" class="log-output p-3">
+                    <div class="text-center">
+                        <i data-feather="loader" class="me-2"></i>
+                        Loading logs...
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-primary" id="refreshLogsBtn">
+                    <i data-feather="refresh-cw" class="me-2"></i>
+                    Refresh
+                </button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Confirmation Modal -->
+<div class="modal fade" id="confirmationModal" tabindex="-1" aria-labelledby="confirmationModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="confirmationModalLabel">
+                    <i data-feather="alert-triangle" class="me-2 text-warning"></i>
+                    Confirm Action
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p id="confirmationMessage">Are you sure you want to proceed?</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-danger" id="confirmActionBtn">Confirm</button>
+            </div>
+        </div>
+    </div>
+</div>

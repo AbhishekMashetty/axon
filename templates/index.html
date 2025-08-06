@@ -1,0 +1,266 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - Batch Deployment System{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1 class="h3">
+                <i data-feather="activity" class="me-2"></i>
+                Deployment Dashboard
+            </h1>
+            <div>
+                <a href="{{ url_for('upload_form') }}" class="btn btn-primary">
+                    <i data-feather="plus" class="me-2"></i>
+                    New Deployment
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Stats -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card">
+            <div class="card-body text-center">
+                <i data-feather="upload" class="text-primary mb-2" style="width: 2rem; height: 2rem;"></i>
+                <h4 class="mb-1">{{ recent_batches|length }}</h4>
+                <p class="text-muted mb-0">Recent Batches</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card">
+            <div class="card-body text-center">
+                <i data-feather="check-circle" class="text-success mb-2" style="width: 2rem; height: 2rem;"></i>
+                <h4 class="mb-1">{{ recent_batches | selectattr('status.value', 'equalto', 'success') | list | length }}</h4>
+                <p class="text-muted mb-0">Successful</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card">
+            <div class="card-body text-center">
+                <i data-feather="x-circle" class="text-danger mb-2" style="width: 2rem; height: 2rem;"></i>
+                <h4 class="mb-1">{{ recent_batches | selectattr('status.value', 'equalto', 'failed') | list | length }}</h4>
+                <p class="text-muted mb-0">Failed</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card">
+            <div class="card-body text-center">
+                <i data-feather="clock" class="text-warning mb-2" style="width: 2rem; height: 2rem;"></i>
+                <h4 class="mb-1">{{ recent_batches | selectattr('status.value', 'equalto', 'processing') | list | length }}</h4>
+                <p class="text-muted mb-0">Processing</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Deployments -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i data-feather="list" class="me-2"></i>
+                    Recent Deployment Batches
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if recent_batches %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Batch ID</th>
+                                    <th>YAML File</th>
+                                    <th>Status</th>
+                                    <th>Deployments</th>
+                                    <th>Success Rate</th>
+                                    <th>Created</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for batch in recent_batches %}
+                                <tr class="deployment-card">
+                                    <td>
+                                        <code class="text-info">{{ batch.batch_id[:8] }}...</code>
+                                    </td>
+                                    <td>
+                                        <i data-feather="file" class="me-1 text-muted"></i>
+                                        {{ batch.yaml_filename }}
+                                    </td>
+                                    <td>
+                                        {% set status_class = {
+                                            'pending': 'secondary',
+                                            'processing': 'warning',
+                                            'success': 'success',
+                                            'failed': 'danger',
+                                            'rollback': 'info'
+                                        } %}
+                                        <span class="badge bg-{{ status_class.get(batch.status.value, 'secondary') }} status-badge">
+                                            {% set status_icons = {
+                                                'pending': 'clock',
+                                                'processing': 'loader',
+                                                'success': 'check-circle',
+                                                'failed': 'x-circle',
+                                                'rollback': 'rotate-ccw'
+                                            } %}
+                                            <i data-feather="{{ status_icons.get(batch.status.value, 'circle') }}" class="me-1" style="width: 0.8rem; height: 0.8rem;"></i>
+                                            {{ batch.status.value.title() }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-primary">{{ batch.total_deployments }}</span>
+                                    </td>
+                                    <td>
+                                        {% if batch.total_deployments > 0 %}
+                                            {% set success_rate = (batch.successful_deployments / batch.total_deployments * 100) | round(1) %}
+                                            <div class="progress" style="height: 20px;">
+                                                <div class="progress-bar bg-success" role="progressbar" 
+                                                     style="width: {{ success_rate }}%"
+                                                     aria-valuenow="{{ success_rate }}" aria-valuemin="0" aria-valuemax="100">
+                                                    {{ success_rate }}%
+                                                </div>
+                                            </div>
+                                        {% else %}
+                                            <span class="text-muted">N/A</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <small class="text-muted">
+                                            {{ batch.created_at.strftime('%Y-%m-%d %H:%M') }}
+                                        </small>
+                                    </td>
+                                    <td>
+                                        <div class="btn-group btn-group-sm" role="group">
+                                            <a href="{{ url_for('deployment_status', batch_id=batch.batch_id) }}" 
+                                               class="btn btn-outline-primary">
+                                                <i data-feather="eye" class="me-1"></i>
+                                                View
+                                            </a>
+                                            {% if batch.status.value in ['failed', 'success'] and batch.successful_deployments > 0 %}
+                                            <button type="button" class="btn btn-outline-warning" 
+                                                    onclick="confirmRollback('{{ batch.batch_id }}')">
+                                                <i data-feather="rotate-ccw" class="me-1"></i>
+                                                Rollback
+                                            </button>
+                                            {% endif %}
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="text-center py-5">
+                        <i data-feather="inbox" class="text-muted mb-3" style="width: 4rem; height: 4rem;"></i>
+                        <h5 class="text-muted">No deployment batches yet</h5>
+                        <p class="text-muted">Upload a YAML configuration to get started with batch deployments.</p>
+                        <a href="{{ url_for('upload_form') }}" class="btn btn-primary">
+                            <i data-feather="upload" class="me-2"></i>
+                            Create First Deployment
+                        </a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- System Health -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i data-feather="activity" class="me-2"></i>
+                    System Health
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6 class="text-muted">Pillar Webhooks</h6>
+                        <div class="list-group list-group-flush">
+                            {% for pillar in ['clearing', 'risk', 'data', 'shared'] %}
+                            <div class="list-group-item d-flex justify-content-between align-items-center">
+                                <span>
+                                    <i data-feather="server" class="me-2 text-muted"></i>
+                                    {{ pillar.title() }}
+                                </span>
+                                <span class="badge bg-success">
+                                    <i data-feather="check" style="width: 0.8rem; height: 0.8rem;"></i>
+                                    Connected
+                                </span>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <h6 class="text-muted">System Status</h6>
+                        <div class="list-group list-group-flush">
+                            <div class="list-group-item d-flex justify-content-between align-items-center">
+                                <span>
+                                    <i data-feather="database" class="me-2 text-muted"></i>
+                                    Database
+                                </span>
+                                <span class="badge bg-success">
+                                    <i data-feather="check" style="width: 0.8rem; height: 0.8rem;"></i>
+                                    Online
+                                </span>
+                            </div>
+                            <div class="list-group-item d-flex justify-content-between align-items-center">
+                                <span>
+                                    <i data-feather="cloud" class="me-2 text-muted"></i>
+                                    Kubernetes API
+                                </span>
+                                <span class="badge bg-success">
+                                    <i data-feather="check" style="width: 0.8rem; height: 0.8rem;"></i>
+                                    Reachable
+                                </span>
+                            </div>
+                            <div class="list-group-item d-flex justify-content-between align-items-center">
+                                <span>
+                                    <i data-feather="anchor" class="me-2 text-muted"></i>
+                                    Harness API
+                                </span>
+                                <span class="badge bg-success">
+                                    <i data-feather="check" style="width: 0.8rem; height: 0.8rem;"></i>
+                                    Available
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function confirmRollback(batchId) {
+    if (confirm('Are you sure you want to rollback this deployment batch? This will cancel any ongoing deployments.')) {
+        // Create a form and submit it
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = '/rollback/' + batchId;
+        document.body.appendChild(form);
+        form.submit();
+    }
+}
+
+// Initialize feather icons after page load
+document.addEventListener('DOMContentLoaded', function() {
+    feather.replace();
+});
+</script>
+{% endblock %}
