@@ -1,1 +1,6 @@
+# Start with basic columns that always exist
+kubectl get pods -n oit-data-rat-52 -o custom-columns="NAME:.metadata.name,STATUS:.status.phase,AGE:.metadata.creationTimestamp" | grep jasper-
+
+
+
 kubectl get pods -n oit-data-rat-52 -o custom-columns="NAME:.metadata.name,STATUS:.status.phase,RESTARTS:.status.containerStatuses[0].restartCount,AGE:.metadata.creationTimestamp" | grep jasper-
